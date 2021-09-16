@@ -1,0 +1,5 @@
+#The requirements file for reproducing the analysis environment.
+sklearn
+xlrd
+pandas
+numpy

@@ -1,0 +1,254 @@
+Upload_list_all:
+  Tag_Column: 'wtg_id'
+  Parent_path: 'D:\Users\xxx\Documents\Git\Diagnostic_Predictive_Maintenance_MLModel_Template\'
+  Target_Column: 'Events_binary' 
+  Logging_Config: 
+    version: 1
+    logger:
+      sampleLogger:
+        filename: 'app.log'
+        level: DEBUG 
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+      root:
+        filename: 'root.log'
+        level: INFO
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  Create_Labels: 
+    Upload_Tags: ['Dataset1','Dataset2']
+    Dataset1:
+      Input: Logs_Faults
+      Tags: ['T02','T22']
+      Category: 'FaultComponent'
+      New_Category_Column: 'COMPONENT'
+      Refcolumn: 'Events'
+      Output: [Labels,Features]
+    Dataset2:
+      Input: Log_not_normal_Faults
+      Tags: ['T02','T22']
+      Category: 'FaultComponent'
+      New_Category_Column: 'COMPONENT'
+      Refcolumn: 'Events'
+      Output: [Labels_not_normal,Features_not_normal]
+  Data_Preprocessing:
+    scale_feature_list_all: 'False'  
+  Combine_Datasets:
+    Upload_Data: ['Dataset1']
+    Dataset1:
+      Input: [Features,Labels]  
+      Combine_Tags: ['T02','T22']
+      Event_Threshold: 5
+      Output: [Features,Labels, AllLabels]
+      Target_Column: 'Events_binary' 
+  Imputation:
+    read_excel: False
+    Input: [Features_df,Features_List]  
+    feature_fill: ['Power_kW','Voltage_N','Current_A','Generator_speed_rpm','Rotor_rpm','Blades','Power_factor_set_value','Torque_act_Percent','Operating_state','State_Fault','Temp_Gen','Temp_Nacelle','Temp_generator_cool_air','gearboxbearing_temp_C','CCU_Circuit_breaker_cutins','Line_freq_Hz','Tower_acc_normal','Temp_GBX_1','Temp_GBX_2','Tower_acc_lateral','Tower_base_temp_C','Angle_degree','Temp_Trafo','Temp_bearing','Ambient_temp_C','Windspeed_a1_m_s','Prox_sensor','Poss_power_WFMS_kW','Max_power_inc','Turbine_State']
+    Power_kW:
+        feature_fill_list: ['Power_kW','CCU_power_kW']
+        limit_conditions: [-133,2750]
+        value: -888888
+    Voltage_N:
+        feature_fill_list: ['Voltage_A_N','Voltage_B_N','Voltage_C_N','CCU_voltage_V']
+        limit_conditions: [340,480]
+        value: -888888
+    Current_A:
+        feature_fill_list: ['Current_A_A','Current_B_A','Current_C_A']
+        limit_conditions: [0,2300]
+        value: -888888
+    Generator_speed_rpm:
+        feature_fill_list: ['CCU_Generator_speed_rpm','Generator_rpm']
+        limit_conditions: [0,1833]
+        value: -888888
+  Split_Train_test: 
+    Input: [Features_df_new,Labels_df,Features_List_new,Labels_List]
+    Drop_Features: ['Period','wtg_id','Events_binary']
+    Referance_column: 'wtg_id'
+    Selected_data: ['T02']
+    Type: 'vertical'
+    Test_size: 0.25
+    Stratify: True
+    Output: [X_trains,y_trains,X_trains_list,y_trains_list]
+  Feature_Extraction:
+    Input: [X_trains,X_test,X_trains_list,X_tests_list,meta]
+    Metadata: [meta]
+    Feature_Ext_List: ['Normalize','Roll']
+    Feature_Extraction_Method:
+        Normalize:
+            list: ['Norm1']
+            Input: [X_trains,X_test,X_trains_list,X_tests_list]
+            normalize_feature_list: ['Windspeed_m_s','Power_kW','Rotor_rpm','Nacelle_Position','Generator_rpm','Torque_act_Percent','Torque_set_Percent','Tower_acc_normal','Tower_acc_lateral','Tower_base_temp_C','gearboxbearing_temp_C','GBX_bearing_hollow_shaft_temp_C','Ambient_temp_C','GBX_OIL1_temp_C','GBX_OIL2_temp_C','GBX_T1_HSS_temp_C','GBX_T3_HSS_temp_C','GBX_T1_IMS_temp_C','GBX_T3_IMS_temp_C','GBX_Distr_temp_C','GBX_OIL_temp_C','Shaft_bearing1_temp_C','Shaft_bearing2_temp_C','Prox_sensor45_mm','Prox_sensor135_mm','Prox_sensor225_mm','Prox_sensor315_mm','Blade2_act_val_A_degree','Blade2_act_val_B_degree','Blade2_set_val_degree','Blade3_act_val_A_degree','Blade3_act_val_B_degree','Blade3_set_val_degree','Blade1_act_val_A_degree','Blade1_act_val_B_degree','Blade1_set_val_degree','Nacelle_rev','Nacelle_rev.1','Operating_state','Operating_state_1','Particle_counter','Particle_counter_1','Pitch_offset_1_ALC_deg','Pitch_offset_1_ALC_deg','Pitch_offset_2_ALC_deg','Pitch_offset_2_ALC_deg','Pitch_offset_3_ALC_deg','Pitch_offset_3_ALC_deg','Pitch_demand_baseline_def','Pitch_demand_baseline_def_1','Pitch_offset_tower_feedback','Pitch_offset_tower_feedback_1','Power_kW','Power_factor','Power_factor_set_value','Reactive_power_kVar','Rotor_lock_position','Scope_CH_1','Scope_CH_2','Scope_CH_3','Scope_CH_4','Temp_Axis_box_1','Temp_Axis_box_2','Temp_Axis_box_3','Temp_Heat_Exch_CCU','Temp_Nacelle','Temp_Trafo_1','Temp_Trafo_2','Temp_Trafo_3','Temp_battery_box_1','Temp_battery_box_2','Temp_battery_box_3','Temp_bearing_A','Temp_bearing_B','Temp_generator_1','Temp_generator_2','Temp_generator_cool_air','Temp_2nd_Outside','Temp_MCC_cabinet','Temp_slip_ring','Temp_top_box','Torque_Offset_tower_feedback_Nm','Tower_acc_lateral_raw_mm_s2','Tower_acc_normal_raw_mm_s2','Tower_deflection_ms','Voltage_A_N','Voltage_B_N','Voltage_C_N','Wind_dev_1_sec','Wind_dev_10_sec','Wind_dev_2_1_sec','Wind_dev_2_10_sec','Wind_speed_m_s','Windspeed_a_m_s','nset_1_rpm','nset_1_rpm_1','nset_2_rpm','nset_2_rpm_1']
+            Norm1:
+                Create_metadata: False
+                Input: [X_trains,X_test,X_trains_list,X_tests_list]
+                method: '_norm'
+                normalize_feature_list: ['Windspeed_m_s','Power_kW','Rotor_rpm','Nacelle_Position','Generator_rpm','Torque_act_Percent','Torque_set_Percent','Tower_acc_normal','Tower_acc_lateral','Tower_base_temp_C','gearboxbearing_temp_C','GBX_bearing_hollow_shaft_temp_C','Ambient_temp_C','GBX_OIL1_temp_C','GBX_OIL2_temp_C','GBX_T1_HSS_temp_C','GBX_T3_HSS_temp_C','GBX_T1_IMS_temp_C','GBX_T3_IMS_temp_C','GBX_Distr_temp_C','GBX_OIL_temp_C','Shaft_bearing1_temp_C','Shaft_bearing2_temp_C','Prox_sensor45_mm','Prox_sensor135_mm','Prox_sensor225_mm','Prox_sensor315_mm','Blade2_act_val_A_degree','Blade2_act_val_B_degree','Blade2_set_val_degree','Blade3_act_val_A_degree','Blade3_act_val_B_degree','Blade3_set_val_degree','Blade1_act_val_A_degree','Blade1_act_val_B_degree','Blade1_set_val_degree','Nacelle_rev','Nacelle_rev.1','Operating_state','Operating_state_1','Particle_counter','Particle_counter_1','Pitch_offset_1_ALC_deg','Pitch_offset_1_ALC_deg','Pitch_offset_2_ALC_deg','Pitch_offset_2_ALC_deg','Pitch_offset_3_ALC_deg','Pitch_offset_3_ALC_deg','Pitch_demand_baseline_def','Pitch_demand_baseline_def_1','Pitch_offset_tower_feedback','Pitch_offset_tower_feedback_1','Power_kW','Power_factor','Power_factor_set_value','Reactive_power_kVar','Rotor_lock_position','Scope_CH_1','Scope_CH_2','Scope_CH_3','Scope_CH_4','Temp_Axis_box_1','Temp_Axis_box_2','Temp_Axis_box_3','Temp_Heat_Exch_CCU','Temp_Nacelle','Temp_Trafo_1','Temp_Trafo_2','Temp_Trafo_3','Temp_battery_box_1','Temp_battery_box_2','Temp_battery_box_3','Temp_bearing_A','Temp_bearing_B','Temp_generator_1','Temp_generator_2','Temp_generator_cool_air','Temp_2nd_Outside','Temp_MCC_cabinet','Temp_slip_ring','Temp_top_box','Torque_Offset_tower_feedback_Nm','Tower_acc_lateral_raw_mm_s2','Tower_acc_normal_raw_mm_s2','Tower_deflection_ms','Voltage_A_N','Voltage_B_N','Voltage_C_N','Wind_dev_1_sec','Wind_dev_10_sec','Wind_dev_2_1_sec','Wind_dev_2_10_sec','Wind_speed_m_s','Windspeed_a_m_s','nset_1_rpm','nset_1_rpm_1','nset_2_rpm','nset_2_rpm_1']
+        Roll:
+            list: ['Roll1','Roll2']
+            Input: [X_trains,X_test,X_trains_list,X_tests_list]
+            Roll1:
+                Create_metadata: False
+                Input: [X_trains,X_test,X_trains_list,X_tests_list]
+                method: '_roll_std'
+                diff: 2
+            Roll2:
+                Create_metadata: False
+                Input: [X_trains,X_test,X_trains_list,X_tests_list]
+                method: '_roll_mean'
+                diff: 2
+  Feature_Selection:
+    Input: [X_trains,y_trains,X_trains_list,y_trains_list]
+    Metadata: [meta]
+    Classification: 'Binary'
+    Average: 'binary'  
+    Feature_Selection_Method:
+        Basic_Elemination:
+           Input: [X_trains,y_trains,X_trains_list,y_trains_list]
+           Create_metadata: True
+           many_unique_cut_off: 0.02
+           variance_threshold: 0.1           
+           Default_values: [-999999,-888888]
+           Output: meta   
+        Unigini:
+           Input: [X_trains,y_trains,X_trains_list,y_trains_list]
+           Create_metadata: False
+           random: 42
+           cut_off_below: 0.001
+           cut_off_change: 0.3
+        Correlation:
+           Input: [X_trains,y_trains,X_trains_list,y_trains_list]
+           Create_metadata: False
+           random: 42      
+           cut_off_corr: 0.98
+           size_coeff: 0.1       
+        Hybrid:
+           Input: [X_trains,y_trains,X_trains_list,y_trains_list]
+           Create_metadata: False
+           random: 42
+           Feature_Selection_Threshold: 0.005
+           Filter_Method : f_classif
+           Wrapper_Method : RandomForestClassifier
+           Classification: 'Binary'
+           Average: 'binary'  
+  Model_Parameters:
+    Input: [X_trains_list, y_trains_list, X_tests_list, y_tests_list,selectedfeatures]
+    Models: [RandomForest,XGboost]
+    RandomForest:
+      grid_search: True
+      cv: 10
+      parameters: { max_depth: [5,6,7,8,9,10,11,12,13,14,15], min_impurity_split: [1e-1,1e-2,1e-3,1e-4,1e-5] }
+      scoring: 'binary'
+    XGboost:
+      grid_search: True
+      cv: None
+      parameters: { max_depth: [5,7,8]}
+      scoring: 'binary'
+    Catboost:
+      grid_search: True
+      cv: 10
+      parameters: { depth: [5,6,7,8,9,10,11,12,13,14,15], l2_leaf_reg: [1e-2, 1e-1, 1e0, 1e1, 1e2]  }
+      scoring: 'binary'
+    LightGBM:
+      grid_search: True
+      cv: 10
+      parameters: {max_depth: [5,6,7,8,9,10,11,12,13,14,15], min_child_weight: [1e-2, 1e-1, 1e0, 1e1, 1e2] }  
+      scoring: 'binary'
+    SVM:
+      grid_search: True 
+      cv: 10
+      parameters: {gamma: [1, 0.1, 0.01, 0.001, 0.0001],C : [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],kernel: ['rbf'] }
+      kernel: ['rbf']   
+      scoring: 'binary'
+    Voting:
+      grid_search: False
+      model_list: ['Catboost','LightGBM']      
+  Import_Data:
+    Input: [Logs_not_normal_fill]
+    Tags: ['T02','T22']
+  Database_Config:
+    p_username : ""
+    p_password : ""
+    p_host : ""
+    p_service : ""
+    p_port : ""
+  External_Datasets:
+    Upload_Tags: ['Component']
+    Component:
+      Name: 'Component'
+      Dataset_Tags: ['Dataset1']
+      Dataset1:
+        Name: 'FaultComponent'
+        Path_list: ['scada']
+        File_list: ['Umut_SCADA.xls']
+        Sheet_list: ['Sheet1']
+        Range_list: [0,0]
+        renamecolumns: ['Number', 'Braking', 'COMPONENTS', 'Events']
+        refcolumn: ['Unnamed: 0']
+        drop:
+          value: True
+          refcolumns: ['Unnamed: 0']
+  Datasets:
+    Upload_Tags: ['T02','T22']
+    T02:
+      Combine:
+        combine_datasets: ['Logs_normal_fill','Faults']
+      Dataset_Tags: ['Dataset1','Dataset2']
+      Dataset1:
+        Name: 'Logs'
+        Type: 'concat'
+        Path_list: ['log','log','log','log','log','log']
+        File_list: ['T02.xls','T02.xls','T02.xls','T02.xls','T02.xls','T02.xls']
+        Sheet_list: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE']
+        Range_list: [[0,11],[0,11],[0,11],[0,11],[0,11],[0,11]]
+        refcolumn: 'Unnamed: 0'
+        feature_fill:
+          list: ['list1','list2']
+          list1:
+            feature_fill_list: 
+            limit_conditions: 
+            value: [-88888]
+          list2:
+            feature_fill_list: 
+            limit_conditions: 
+            value: [-88888]
+        renamecolumns: {'Unnamed: 0': 'Period','Bahce 02 10s power average (kW)':'Power_kW_avg','Bahce 02 10s wind speed average (m/s)':'Windspeed_m_s_avg','Bahce 02 Power (kW)':'Power_kW','Bahce 02 Angle rotor position (°)':'Rotor_angle_degree','Bahce 02 Rotor speed (PLC) (rpm)':'Rotor_rpm','Bahce 02 BuddyYawOffset (°)': 'BuddyYawOffset_degree','Bahce 02 CCU current (A)': 'CCU_current_A','Bahce 02 CCU power (kW)': 'CCU_power_kW','Bahce 02 CCU reactive power (kVAr)': 'CCU_reactive_power_kVAr','Bahce 02 CCU voltage (V)': 'CCU_voltage_V','Bahce 02 Circuit breaker cut-ins': 'CCU_Circuit_breaker_cutins','Bahce 02 Current A (A)': 'CCU_current_A_A','Bahce 02 Current B (A)': 'CCU_current_B_A','Bahce 02 Current C (A)': 'CCU_current_C_A','Bahce 02 Delta Pitch ATC (°)': 'Delta_Pitch_ATC','Bahce 02 Der. Thrust with respect to pitch (kN/rad)': 'Thrust_respect_pitch_kN_rad','Bahce 02 Der. Thrust with respect to rotor speed (kNs/rad)': 'Thrust_respect_rotor_speed_kNs_rad','Bahce 02 Der. Thrust with respet to wind speed (kNs/m)': 'Thrust_respect_wind_speed_kNs_m','Bahce 02 Drip loop power cable temperature 1 (°C)': 'Drip_loop_power_cable_temp_1','Bahce 02 Drip loop power cable temperature 2 (°C)': 'Drip_loop_power_cable_temp_2','Bahce 02 Drive train acceleration (mm/s²)': 'Drive_train_acc_mm_s2','Bahce 02 Estimated Thrust (kN)': 'Estimated_Thrust_kN','Bahce 02 External power limit (kW)': 'External_power_limit_kW','Bahce 02 Filtered Wind speed estimator (m/s)': 'Filtered_Wind_speed_estimator','Bahce 02 Generator Temp. 3 (°C)': 'Generator_temp_3_C','Bahce 02 Generator speed (CCU) (rpm)': 'CCU_Generator_speed_rpm','Bahce 02 Hydraulic prepressure (bar)': 'Hydraulic_prepressure_bar','Bahce 02 Internal power limit (kW)': 'Internal_power_limit_kW','Bahce 02 Line frequency (Hz)': 'Line_freq_Hz','Bahce 02 Mainframe acceleration lateral (mm/s²)': 'Mainframe_acc_lateral','Bahce 02 Mainframe acceleration vertical (mm/s²)': 'Mainframe_acc_vertical','Bahce 02 Maximal power decrease (kW/s)': 'Maximal_power_decrease_kW_s','Bahce 02 Maximal power increase (kW/s)': 'Maximal_power_increase_kW_s','Bahce 02 Minimum Pitch ATC (°)': 'Mini_Pitch_ATC','Bahce 02 Mom. D filtered (kNm)': 'Mom_D_filtered','Bahce 02 Mom. Q filltered (kNm)': 'Mom_Q_filtered','Bahce 02 Moment D direction (kNm)': 'Mom_D_direction','Bahce 02 Moment Q direction (kNm)': 'Mom_Q_direction','Bahce 02 Nacelle position (°)':'Nacelle_Position','Bahce 02 Generator speed (PLC) (rpm)':'Generator_rpm','Bahce 02 Torque, actual value (%)':'Torque_act_Percent','Bahce 02 Torque, set value (%)':'Torque_set_Percent','Bahce 02 Tower acceleration  normal (mm/s²)':'Tower_acc_normal','Bahce 02 Tower acceleration lateral (mm/s²)':'Tower_acc_lateral','Bahce 02 Temp. tower base (°C)':'Tower_base_temp_C','Bahce 02 Temp. Ambient (°C)':'Ambient_temp_C','Bahce 02 Windspeed a. 1 (m/s)':'Windspeed_m_s','Bahce 02 Temp. gear box bearing (°C)':'gearboxbearing_temp_C','Bahce 02 Temp. GBX bearing hollow shaft (°C)':'GBX_bearing_hollow_shaft_temp_C','Bahce 02 T_GBX_OIL_1 (°C)':'GBX_OIL1_temp_C','Bahce 02 T_GBX_OIL_2 (°C)':'GBX_OIL2_temp_C','Bahce 02 T_GBX_T1-HSS (°C)':'GBX_T1_HSS_temp_C','Bahce 02 T_GBX_T3-HSS (°C)':'GBX_T3_HSS_temp_C','Bahce 02 T_GBX_T1-IMS (°C)':'GBX_T1_IMS_temp_C','Bahce 02 T_GBX_T3-IMS (°C)':'GBX_T3_IMS_temp_C','Bahce 02 T_GBX_Distr (°C)':'GBX_Distr_temp_C','Bahce 02 T_GBX_OIL (°C)':'GBX_OIL_temp_C','Bahce 02 Temp. shaft bearing 1 (°C)':'Shaft_bearing1_temp_C','Bahce 02 Temp. shaft bearing 2 (°C)':'Shaft_bearing2_temp_C','Bahce 02 Prox. sensor 45° (mm)':'Prox_sensor45_mm','Bahce 02 Prox. sensor 135° (mm)':'Prox_sensor135_mm','Bahce 02 Prox. sensor 225° (mm)':'Prox_sensor225_mm','Bahce 02 Prox. sensor 315° (mm)':'Prox_sensor315_mm','Bahce 02 Blade 2, actual value A (°)':'Blade2_act_val_A_degree','Bahce 02 Blade 2 actual value B (°)':'Blade2_act_val_B_degree','Bahce 02 Blade 2, set value (°)':'Blade2_set_val_degree','Bahce 02 Blade 3, actual value A (°)':'Blade3_act_val_A_degree','Bahce 02 Blade 3 actual value B (°)':'Blade3_act_val_B_degree','Bahce 02 Blade 3, set value (°)':'Blade3_set_val_degree','Bahce 02 Blade 1, set value (°)':'Blade1_set_val_degree','Bahce 02 Blade 1, actual value A (°)':'Blade1_act_val_A_degree','Bahce 02 Blade 1 actual value B (°)':'Blade1_act_val_B_degree','Bahce 02 Nacelle revolution' :  'Nacelle_rev','Bahce 02 Nacelle revolution.1' :  'Nacelle_rev.1','Bahce 02 Operating state' :  'Operating_state','Bahce 02 Operating state.1' :  'Operating_state_1','Bahce 02 Particle counter' :  'Particle_counter','Bahce 02 Particle counter.1' :  'Particle_counter_1','Bahce 02 Pitch Offset 1 ALC (°)' :  'Pitch_offset_1_ALC_deg','Bahce 02 Pitch Offset 1 ALC (°).1' :  'Pitch_offset_1_ALC_deg_1','Bahce 02 Pitch Offset 2 ALC (°)' :  'Pitch_offset_2_ALC_deg','Bahce 02 Pitch Offset 2 ALC (°).1' :  'Pitch_offset_2_ALC_deg_1','Bahce 02 Pitch Offset 3 ALC (°)' :  'Pitch_offset_3_ALC_deg','Bahce 02 Pitch Offset 3 ALC (°).1' :  'Pitch_offset_3_ALC_deg_1','Bahce 02 Pitch demand baseline (°)' :  'Pitch_demand_baseline_def','Bahce 02 Pitch demand baseline (°).1' :  'Pitch_demand_baseline_def_1','Bahce 02 PitchOffset Tower feedback (°)' :  'Pitch_offset_tower_feedback','Bahce 02 PitchOffset Tower feedback (°).1' :  'Pitch_offset_tower_feedback_1','Bahce 02 Possible power sent to WFMS (kW)' :  'Poss_power_sent_to_WFMS_kW','Bahce 02 Possible power sent to WFMS (kW).1' :  'Poss_power_sent_to_WFMS_kW_1','Bahce 02 Power (kW).1' :  'Power_kW_1','Bahce 02 Power factor' :  'Power_factor','Bahce 02 Power factor, set value' :  'Power_factor_set_value','Bahce 02 Reactive power (kVAr)' :  'Reactive_power_kVar','Bahce 02 Rotor acceleration estimator (rad/s²)' :  'Rotor_acc_est_rad_s2','Bahce 02 Rotor lock position (°)' :  'Rotor_lock_position','Bahce 02 Scope CH 1' :  'Scope_CH_1','Bahce 02 Scope CH 2' :  'Scope_CH_2','Bahce 02 Scope CH 3' :  'Scope_CH_3','Bahce 02 Scope CH 4' :  'Scope_CH_4','Bahce 02 State and Fault' :  'State_Fault','Bahce 02 Temp. Axis box 1 (°C)' :  'Temp_Axis_box_1','Bahce 02 Temp. Axis box 2 (°C)' :  'Temp_Axis_box_2','Bahce 02 Temp. Axis box 3 (°C)' :  'Temp_Axis_box_3','Bahce 02 Temp. Heat Exchanger CCU (°C)' :  'Temp_Heat_Exch_CCU','Bahce 02 Temp. Nacelle (°C)' :  'Temp_Nacelle','Bahce 02 Temp. Trafo 1 690 V (°C)' :  'Temp_Trafo_1','Bahce 02 Temp. Trafo 2 690 V (°C)' :  'Temp_Trafo_2','Bahce 02 Temp. Trafo 3 690 V (°C)' :  'Temp_Trafo_3','Bahce 02 Temp. battery box 1 (°C)' :  'Temp_battery_box_1','Bahce 02 Temp. battery box 2 (°C)' :  'Temp_battery_box_2','Bahce 02 Temp. battery box 3 (°C)' :  'Temp_battery_box_3','Bahce 02 Temp. bearing A (°C)' :  'Temp_bearing_A','Bahce 02 Temp. bearing B (°C)' :  'Temp_bearing_B','Bahce 02 Temp. generator 1 (°C)' :  'Temp_generator_1','Bahce 02 Temp. generator 2 (°C)' :  'Temp_generator_2','Bahce 02 Temp. generator cooling air (°C)' :  'Temp_generator_cool_air','Bahce 02 Temperatue 2nd Outside (°C)' :  'Temp_2nd_Outside','Bahce 02 Temperature MCC cabinet (°C)' :  'Temp_MCC_cabinet','Bahce 02 Temperature slip ring (°C)' :  'Temp_slip_ring','Bahce 02 Temperature top box (°C)' :  'Temp_top_box','Bahce 02 Thrust extrapolated ATC (kN)' :  'Thrust_extra_ATC_kN','Bahce 02 Thrust extreme ATC (kN)' :  'Thrust_extreme_ATC_kN','Bahce 02 Thrust level ATC (kN)' :  'Thrust_level_ATC_kN','Bahce 02 Thrust limit ATC (kN)' :  'Thrust_limit_ATC_kN','Bahce 02 Thrust standard dev. ATC (kN)' :  'Thrust_stand_dev_ATC_kN','Bahce 02 TorqueOffset tower feedback (Nm)' :  'Torque_Offset_tower_feedback_Nm','Bahce 02 Tower acc. lateral raw (mm/s²)' :  'Tower_acc_lateral_raw_mm_s2','Bahce 02 Tower acc. normal raw (mm/s²)' :  'Tower_acc_normal_raw_mm_s2','Bahce 02 Tower deflection (ms)' :  'Tower_deflection_ms','Bahce 02 Turbine State' :  'Turbine_State','Bahce 02 Voltage A-N (V)' :  'Voltage_A_N','Bahce 02 Voltage B-N (V)' :  'Voltage_B_N','Bahce 02 Voltage C-N (V)' :  'Voltage_C_N','Bahce 02 Wind acceleration estimator (m/s²)' :  'Wind_acc_estimator_m_s2','Bahce 02 Wind deviation 1 sec. (°)' :  'Wind_dev_1_sec','Bahce 02 Wind deviation 10 sec. (°)' :  'Wind_dev_10_sec','Bahce 02 Wind deviation 2, 1 sec. (°)' :  'Wind_dev_2_1_sec','Bahce 02 Wind deviation 2, 10 sec. (°)' :  'Wind_dev_2_10_sec','Bahce 02 Wind speed (m/s)' :  'Wind_speed_m_s','Bahce 02 Wind speed estimator (m/s)' :  'Wind_speed_est_m_s','Bahce 02 Windspeed a. 2 (m/s)' :  'Windspeed_a_m_s','Bahce 02 n-set 1 (rpm)' :  'nset_1_rpm','Bahce 02 n-set 1 (rpm).1' :  'nset_1_rpm_1','Bahce 02 n-set 2 (rpm)' :  'nset_2_rpm','Bahce 02 n-set 2 (rpm).1' :  'nset_2_rpm_1'}
+      Dataset2:
+        Name: 'Faults'
+        Type: 'concat'
+        Path_list: ['scada']
+        File_list: ['FaultAnalysis T02.xls']
+        Sheet_list: ['FaultAnalysis']
+        Range_list: [0,50]
+        column_list: ['Start Time', 'End Time', 'Event ID']
+        refcolumn: 'Unnamed: 0'
+    T22:
+      Combine:
+        combine_datasets: ['Logs_normal_fill','Faults']
+      Dataset_Tags: ['Dataset1','Dataset2']
+      Dataset1:
+        Name: 'Logs'
+        Type: 'concat'
+        Path_list: ['log','log','log','log','log','log']
+        File_list: ['T22.xls','T22.xls','T22.xls','T22.xls','T22.xls','T22.xls']
+        Sheet_list: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE']
+        Range_list: [[0,11],[0,11],[0,11],[0,11],[0,11],[0,11]]
+        refcolumn: 'Unnamed: 0'
+        feature_fill:
+          list: ['list1','list2']
+          list1:
+            feature_fill_list: ['Ambient_temp_C', 'GBX_OIL1_temp_C', 'GBX_OIL2_temp_C', 'GBX_T1_HSS_temp_C', 'GBX_T3_HSS_temp_C', 'GBX_T1_IMS_temp_C', 'GBX_T3_IMS_temp_C', 'GBX_Distr_temp_C', 'GBX_OIL_temp_C', 'Shaft_bearing1_temp_C', 'Shaft_bearing2_temp_C']
+            limit_conditions: [100,-5]
+          list2:
+            feature_fill_list: ['Prox_sensor45_mm','Prox_sensor135_mm','Prox_sensor225_mm','Prox_sensor315_mm','Blade2_act_val_A_degree','Blade2_act_val_B_degree','Blade2_set_val_degree','Blade3_act_val_A_degree','Blade3_act_val_B_degree','Blade3_set_val_degree','Blade1_act_val_A_degree','Blade1_act_val_B_degree','Blade1_set_val_degree']
+            limit_conditions: [None,-5]
+        renamecolumns: {'Unnamed: 0': 'Period','Bahce 22 Power (kW)':'Power_kW','Bahce 22 Angle rotor position (°)':'Rotor_angle_degree','Bahce 22 Rotor speed (PLC) (rpm)':'Rotor_rpm','Bahce 22 BuddyYawOffset (°)': 'BuddyYawOffset_degree','Bahce 22 CCU current (A)': 'CCU_current_A','Bahce 22 CCU power (kW)': 'CCU_power_kW','Bahce 22 CCU reactive power (kVAr)': 'CCU_reactive_power_kVAr','Bahce 22 CCU voltage (V)': 'CCU_voltage_V','Bahce 22 Circuit breaker cut-ins': 'CCU_Circuit_breaker_cutins','Bahce 22 Current A (A)': 'CCU_current_A_A','Bahce 22 Current B (A)': 'CCU_current_B_A','Bahce 22 Current C (A)': 'CCU_current_C_A','Bahce 22 Drip loop power cable temperature 1 (°C)': 'Drip_loop_power_cable_temp_1','Bahce 22 Drip loop power cable temperature 2 (°C)': 'Drip_loop_power_cable_temp_2','Bahce 22 Drive train acceleration (mm/s²)': 'Drive_train_acc_mm_s2','Bahce 22 Generator Temp. 3 (°C)': 'Generator_temp_3_C','Bahce 22 Generator speed (CCU) (rpm)': 'CCU_Generator_speed_rpm','Bahce 22 Hydraulic prepressure (bar)': 'Hydraulic_prepressure_bar','Bahce 22 Line frequency (Hz)': 'Line_freq_Hz','Bahce 22 Mainframe acceleration lateral (mm/s²)': 'Mainframe_acc_lateral','Bahce 22 Mainframe acceleration vertical (mm/s²)': 'Mainframe_acc_vertical','Bahce 22 Mom. D filtered (kNm)': 'Mom_D_filtered','Bahce 22 Mom. Q filltered (kNm)': 'Mom_Q_filtered','Bahce 22 Moment D direction (kNm)': 'Mom_D_direction','Bahce 22 Moment Q direction (kNm)': 'Mom_Q_direction','Bahce 22 Nacelle position (°)':'Nacelle_Position','Bahce 22 Generator speed (PLC) (rpm)':'Generator_rpm','Bahce 22 Torque, actual value (%)':'Torque_act_Percent','Bahce 22 Torque, set value (%)':'Torque_set_Percent','Bahce 22 Tower acceleration  normal (mm/s²)':'Tower_acc_normal','Bahce 22 Tower acceleration lateral (mm/s²)':'Tower_acc_lateral','Bahce 22 Temp. tower base (°C)':'Tower_base_temp_C','Bahce 22 Temp. Ambient (°C)':'Ambient_temp_C','Bahce 22 Windspeed a. 1 (m/s)':'Windspeed_m_s','Bahce 22 Temp. gear box bearing (°C)':'gearboxbearing_temp_C','Bahce 22 Temp. GBX bearing hollow shaft (°C)':'GBX_bearing_hollow_shaft_temp_C','Bahce 22 T_GBX_OIL_1 (°C)':'GBX_OIL1_temp_C','Bahce 22 T_GBX_OIL_2 (°C)':'GBX_OIL2_temp_C','Bahce 22 T_GBX_T1-HSS (°C)':'GBX_T1_HSS_temp_C','Bahce 22 T_GBX_T3-HSS (°C)':'GBX_T3_HSS_temp_C','Bahce 22 T_GBX_T1-IMS (°C)':'GBX_T1_IMS_temp_C','Bahce 22 T_GBX_T3-IMS (°C)':'GBX_T3_IMS_temp_C','Bahce 22 T_GBX_Distr (°C)':'GBX_Distr_temp_C','Bahce 22 T_GBX_OIL (°C)':'GBX_OIL_temp_C','Bahce 22 Temp. shaft bearing 1 (°C)':'Shaft_bearing1_temp_C','Bahce 22 Temp. shaft bearing 2 (°C)':'Shaft_bearing2_temp_C','Bahce 22 Prox. sensor 45° (mm)':'Prox_sensor45_mm','Bahce 22 Prox. sensor 135° (mm)':'Prox_sensor135_mm','Bahce 22 Prox. sensor 225° (mm)':'Prox_sensor225_mm','Bahce 22 Prox. sensor 315° (mm)':'Prox_sensor315_mm','Bahce 22 Blade 2, actual value A (°)':'Blade2_act_val_A_degree','Bahce 22 Blade 2 actual value B (°)':'Blade2_act_val_B_degree','Bahce 22 Blade 2, set value (°)':'Blade2_set_val_degree','Bahce 22 Blade 3, actual value A (°)':'Blade3_act_val_A_degree','Bahce 22 Blade 3 actual value B (°)':'Blade3_act_val_B_degree','Bahce 22 Blade 3, set value (°)':'Blade3_set_val_degree','Bahce 22 Blade 1, set value (°)':'Blade1_set_val_degree','Bahce 22 Blade 1, actual value A (°)':'Blade1_act_val_A_degree','Bahce 22 Blade 1 actual value B (°)':'Blade1_act_val_B_degree','Bahce 22 Nacelle revolution' :  'Nacelle_rev','Bahce 22 Nacelle revolution.1' :  'Nacelle_rev.1','Bahce 22 Operating state' :  'Operating_state','Bahce 22 Operating state.1' :  'Operating_state_1','Bahce 22 Particle counter' :  'Particle_counter','Bahce 22 Particle counter.1' :  'Particle_counter_1','Bahce 22 Pitch Offset 1 ALC (°)' :  'Pitch_offset_1_ALC_deg','Bahce 22 Pitch Offset 1 ALC (°).1' :  'Pitch_offset_1_ALC_deg_1','Bahce 22 Pitch Offset 2 ALC (°)' :  'Pitch_offset_2_ALC_deg','Bahce 22 Pitch Offset 2 ALC (°).1' :  'Pitch_offset_2_ALC_deg_1','Bahce 22 Pitch Offset 3 ALC (°)' :  'Pitch_offset_3_ALC_deg','Bahce 22 Pitch Offset 3 ALC (°).1' :  'Pitch_offset_3_ALC_deg_1','Bahce 22 Pitch demand baseline (°)' :  'Pitch_demand_baseline_def','Bahce 22 Pitch demand baseline (°).1' :  'Pitch_demand_baseline_def_1','Bahce 22 PitchOffset Tower feedback (°)' :  'Pitch_offset_tower_feedback','Bahce 22 PitchOffset Tower feedback (°).1' :  'Pitch_offset_tower_feedback_1','Bahce 22 Power (kW).1' :  'Power_kW_1','Bahce 22 Power factor' :  'Power_factor','Bahce 22 Power factor, set value' :  'Power_factor_set_value','Bahce 22 Reactive power (kVAr)' :  'Reactive_power_kVar','Bahce 22 Rotor lock position (°)' :  'Rotor_lock_position','Bahce 22 Scope CH 1' :  'Scope_CH_1','Bahce 22 Scope CH 2' :  'Scope_CH_2','Bahce 22 Scope CH 3' :  'Scope_CH_3','Bahce 22 Scope CH 4' :  'Scope_CH_4','Bahce 22 State and Fault' :  'State_Fault','Bahce 22 Temp. Axis box 1 (°C)' :  'Temp_Axis_box_1','Bahce 22 Temp. Axis box 2 (°C)' :  'Temp_Axis_box_2','Bahce 22 Temp. Axis box 3 (°C)' :  'Temp_Axis_box_3','Bahce 22 Temp. Heat Exchanger CCU (°C)' :  'Temp_Heat_Exch_CCU','Bahce 22 Temp. Nacelle (°C)' :  'Temp_Nacelle','Bahce 22 Temp. Trafo 1 690 V (°C)' :  'Temp_Trafo_1','Bahce 22 Temp. Trafo 2 690 V (°C)' :  'Temp_Trafo_2','Bahce 22 Temp. Trafo 3 690 V (°C)' :  'Temp_Trafo_3','Bahce 22 Temp. battery box 1 (°C)' :  'Temp_battery_box_1','Bahce 22 Temp. battery box 2 (°C)' :  'Temp_battery_box_2','Bahce 22 Temp. battery box 3 (°C)' :  'Temp_battery_box_3','Bahce 22 Temp. bearing A (°C)' :  'Temp_bearing_A','Bahce 22 Temp. bearing B (°C)' :  'Temp_bearing_B','Bahce 22 Temp. generator 1 (°C)' :  'Temp_generator_1','Bahce 22 Temp. generator 2 (°C)' :  'Temp_generator_2','Bahce 22 Temp. generator cooling air (°C)' :  'Temp_generator_cool_air','Bahce 22 Temperatue 2nd Outside (°C)' :  'Temp_2nd_Outside','Bahce 22 Temperature MCC cabinet (°C)' :  'Temp_MCC_cabinet','Bahce 22 Temperature slip ring (°C)' :  'Temp_slip_ring','Bahce 22 Temperature top box (°C)' :  'Temp_top_box','Bahce 22 TorqueOffset tower feedback (Nm)' :  'Torque_Offset_tower_feedback_Nm','Bahce 22 Tower acc. lateral raw (mm/s²)' :  'Tower_acc_lateral_raw_mm_s2','Bahce 22 Tower acc. normal raw (mm/s²)' :  'Tower_acc_normal_raw_mm_s2','Bahce 22 Tower deflection (ms)' :  'Tower_deflection_ms','Bahce 22 Turbine State' :  'Turbine_State','Bahce 22 Voltage A-N (V)' :  'Voltage_A_N','Bahce 22 Voltage B-N (V)' :  'Voltage_B_N','Bahce 22 Voltage C-N (V)' :  'Voltage_C_N','Bahce 22 Wind deviation 1 sec. (°)' :  'Wind_dev_1_sec','Bahce 22 Wind deviation 10 sec. (°)' :  'Wind_dev_10_sec','Bahce 22 Wind deviation 2, 1 sec. (°)' :  'Wind_dev_2_1_sec','Bahce 22 Wind deviation 2, 10 sec. (°)' :  'Wind_dev_2_10_sec','Bahce 22 Wind speed (m/s)' :  'Wind_speed_m_s','Bahce 22 Windspeed a. 2 (m/s)' :  'Windspeed_a_m_s','Bahce 22 n-set 1 (rpm)' :  'nset_1_rpm','Bahce 22 n-set 1 (rpm).1' :  'nset_1_rpm_1','Bahce 22 n-set 2 (rpm)' :  'nset_2_rpm','Bahce 22 n-set 2 (rpm).1' :  'nset_2_rpm_1'}
+      Dataset2:
+        Name: 'Faults'
+        Type: 'concat'
+        Path_list: ['scada']
+        File_list: ['FaultAnalysis T22.xls']
+        Sheet_list: ['FaultAnalysis']
+        Range_list: [0,46]
+        column_list: ['Start Time', 'End Time', 'Event ID']
+        refcolumn: 'Unnamed: 0'
+
+
